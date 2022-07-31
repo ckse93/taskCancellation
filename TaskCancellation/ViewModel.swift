@@ -13,6 +13,7 @@ final class ViewModel: ObservableObject {
     @Published var numFound: Int = 0
     @Published var searchResult: [Book] = []
     @Published var isSearching: Bool = false
+    var currentlySelectedBook: Book?
     
     private var task: Task<Void, Never>?
     

@@ -10,6 +10,8 @@ import SwiftUI
 struct ContentView: View {
     @StateObject var viewModel: ViewModel = ViewModel()
     
+    @State var showDetail: Bool = false
+    
     var body: some View {
         NavigationView {
             VStack {
@@ -17,19 +19,34 @@ struct ContentView: View {
                 
                 List(viewModel.searchResult) { book in
                     BookCellView(book: book)
-                }
-                .overlay {
-                    if viewModel.isSearching {
-                        ProgressView()
-                    }
+                        .onTapGesture {
+                            viewModel.currentlySelectedBook = book
+                            showDetail = true
+                        }
                 }
             }
+            .overlay {
+                if viewModel.isSearching {
+                    ZStack {
+                        ProgressView()
+                    }
+                    .frame(width: 50, height: 50)
+                    .background( .regularMaterial )
+                    .clipShape(Circle())
+                }
+            }
+            .onChange(of: viewModel.searchResult.count, perform: { newValue in
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            })
             .searchable(text: $viewModel.searchTerm)
             // wait 0.8 seconds and then execute query
             .onReceive(viewModel.$searchTerm.debounce(for: 0.8, scheduler: RunLoop.main)) { searchTerm in
                 Task {
                     await viewModel.executeQuery()
                 }
+            }
+            .fullScreenCover(isPresented: $showDetail) {
+                BookDetailView(book: viewModel.currentlySelectedBook!)
             }
         }
     }
@@ -47,15 +64,37 @@ struct BookCellView: View {
             
             Text(book.author)
         }
+        .padding(3)
     }
 }
 
 struct BookDetailView: View {
+    @Environment(\.dismiss) var dismiss
+    
     let book: Book
     
     var body: some View {
         VStack {
+            HStack {
+                Spacer()
+                
+                Button("Dismiss") {
+                    self.dismiss()
+                }
+            }
+            .padding()
             
+            AsyncImageWithCache(urlStr: book.largeCoverImageUrl?.absoluteString ?? "")
+            
+            Text(book.title)
+                .font(.title)
+            
+            Text(book.author)
+                .font(.title2)
+            
+            Text(book.isbn)
+            
+            Spacer()
         }
     }
 }

@@ -21,6 +21,7 @@ struct AsyncImageWithCache: View {
             } else {
                 Image(uiImage: UIImage(data: viewModel.imgData)!)
                     .resizable()
+                    .aspectRatio(contentMode: .fit)
             }
         }
         .task {
@@ -28,12 +29,6 @@ struct AsyncImageWithCache: View {
         }
     }
 }
-
-//extension AsyncImageWithCache {
-//    func frame() -> some View {
-//        modifier(<#T##T#>)
-//    }
-//}
 
 class AsyncImageWithCacheViewModel: ObservableObject {
     let urlStr: String
